@@ -328,13 +328,16 @@ def encode_bytes(arr: np.ndarray, lossy_error: int = 0, interleave: int = 0) -> 
     cdef JlsParameters info = build_parameters()
     info.height = arr.shape[0]
     info.width = arr.shape[1]
-    info.components = arr.shape[2] if nr_dims == 3 else 1
+    components = arr.shape[2] if nr_dims == 3 else 1
+    info.components = components
     info.interleaveMode = <interleave_mode>0
-    info.allowedLossyError = <int>lossy_error
-    info.stride = info.width * bytes_per_pixel
+    info.allowedLossyError = lossy_error
+    stride = info.width * bytes_per_pixel
+    info.stride = stride
 
     bit_depth = math.ceil(math.log(arr.max() + 1, 2))
-    info.bitsPerSample = 2 if bit_depth <= 1 else bit_depth
+    bit_depth = 2 if bit_depth <= 1 else bit_depth
+    info.bitsPerSample = bit_depth
 
     LOGGER.debug(
         "Encoding paramers are:\n"
@@ -359,10 +362,10 @@ def encode_bytes(arr: np.ndarray, lossy_error: int = 0, interleave: int = 0) -> 
     cdef JLS_ERROR err
     err = JpegLsEncode(
         <char*>dst,
-        len(dst),
+        <size_t> len(dst),
         &compressed_length,
         <char*>cnp.PyArray_DATA(arr),
-        src_length,
+        <size_t> src_length,
         &info,
         <char *> error_message
     )
