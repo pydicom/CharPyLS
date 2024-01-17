@@ -1,10 +1,11 @@
+
+from tempfile import NamedTemporaryFile
 from pathlib import Path
 
 import pytest
 import numpy as np
-import matplotlib.pyplot as plt
 
-from jpeg_ls import decode, encode
+from jpeg_ls import decode, encode, write, read
 
 
 DATA = Path(__file__).parent / "jlsimV100"
@@ -134,3 +135,12 @@ class TestEncode:
         assert isinstance(buffer, np.ndarray)
         arr = decode(buffer)
         assert np.array_equal(arr, TEST16)
+
+
+def test_write(TEST8R):
+    """Test write()"""
+    t = NamedTemporaryFile(mode="wb")
+    write(t.name, TEST8R)
+
+    arr = read(t.name)
+    assert np.array_equal(arr, TEST8R)

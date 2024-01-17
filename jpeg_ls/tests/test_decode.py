@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 import numpy as np
-import matplotlib.pyplot as plt
 
 from jpeg_ls import decode, read
 
@@ -73,16 +72,14 @@ def TEST16():
     return arr.reshape((256, 256))
 
 
-class TestDecode:
-    """Tests for decode()"""
+class TestRead:
+    """Tests for read()"""
 
-    # @pytest.mark.xfail
+    @pytest.mark.xfail
     def test_T8C0E0(self):
         # Weird output
         # TEST8 in colour mode 0, lossless
         arr = read(DATA / "T8C0E0.JLS")
-        plt.imshow(arr)
-        plt.show()
         assert np.array_equal(arr, TEST8)
 
     @pytest.mark.xfail
@@ -127,8 +124,6 @@ class TestDecode:
         # Errors: Invalid Compressed Data
         # TEST8 lossless
         arr = read(DATA / "T8SSE0.JLS")
-        plt.imshow(arr)
-        plt.show()
         assert np.array_equal(arr, TEST8)
 
     @pytest.mark.xfail
@@ -136,10 +131,6 @@ class TestDecode:
         # Errors: Invalid Compressed Data
         # TEST8 lossy
         arr = read(DATA / "T8SSE3.JLS")
-        plt.imshow(arr)
-        plt.show()
-        diff = arr.astype(float) - TEST8.astype(float)
-        print(diff.max(), diff.min())
         assert np.allclose(arr, TEST8, atol=3)
 
     def test_T16E0(self, TEST16):
@@ -151,3 +142,10 @@ class TestDecode:
         # TEST16 lossy
         arr = read(DATA / "T16E3.JLS")
         assert np.allclose(arr, TEST16, atol=3)
+
+
+def test_decode(TEST8):
+    """Test decode()"""
+    with open(DATA / "T8C1E0.JLS", "rb") as f:
+        arr = decode(np.frombuffer(f.read(), dtype="u1"))
+        assert np.array_equal(arr, TEST8)
