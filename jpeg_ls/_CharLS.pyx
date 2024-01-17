@@ -326,18 +326,21 @@ def encode_bytes(arr: np.ndarray, lossy_error: int = 0, interleave: int = 0) -> 
     )
 
     cdef JlsParameters info = build_parameters()
-    info.height = arr.shape[0]
-    info.width = arr.shape[1]
-    components = arr.shape[2] if nr_dims == 3 else 1
+    cdef int height = arr.shape[0]
+    info.height = height
+    cdef int width = arr.shape[1]
+    info.width = width
+    cdef int components = arr.shape[2] if nr_dims == 3 else 1
     info.components = components
     info.interleaveMode = <interleave_mode>0
-    info.allowedLossyError = lossy_error
-    stride = info.width * bytes_per_pixel
+    cdef int lossy = lossy_error
+    info.allowedLossyError = lossy
+    cdef int stride = info.width * bytes_per_pixel
     info.stride = stride
 
     bit_depth = math.ceil(math.log(arr.max() + 1, 2))
-    bit_depth = 2 if bit_depth <= 1 else bit_depth
-    info.bitsPerSample = bit_depth
+    cdef int bits_per_sample = 2 if bit_depth <= 1 else bit_depth
+    info.bitsPerSample = bits_per_sample
 
     LOGGER.debug(
         "Encoding paramers are:\n"
@@ -354,6 +357,8 @@ def encode_bytes(arr: np.ndarray, lossy_error: int = 0, interleave: int = 0) -> 
     dst = bytearray(b"\x00" * src_length * 2)
     # Number of bytes of compressed data
     cdef size_t compressed_length = 0
+    cdef size_t dst_length = len(dst)
+    cdef size_t src_len = src_length
 
     # Error strings are defined in jpegls_error.cpp
     # As of v2.4.2 the longest string is ~114 chars, so give it a 256 buffer
@@ -362,10 +367,10 @@ def encode_bytes(arr: np.ndarray, lossy_error: int = 0, interleave: int = 0) -> 
     cdef JLS_ERROR err
     err = JpegLsEncode(
         <char*>dst,
-        <size_t> len(dst),
+        dst_length,
         &compressed_length,
         <char*>cnp.PyArray_DATA(arr),
-        <size_t> src_length,
+        src_len,
         &info,
         <char *> error_message
     )
