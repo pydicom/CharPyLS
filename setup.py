@@ -28,6 +28,15 @@ def get_source_files() -> List[Path]:
     return [p.relative_to(Path(__file__).parent) for p in source_files]
 
 
+# Compiler and linker arguments
+extra_compile_args = []
+extra_link_args = []
+if platform.system() == 'Windows':
+    pass
+elif platform.system() in ['Darwin']:
+    extra_compile_args.append["-std=c++11"]
+
+
 ext = Extension(
     name="_CharLS",
     sources=[os.fspath(p) for p in get_source_files()],
@@ -36,7 +45,9 @@ ext = Extension(
         os.fspath(LIB_DIR / "include"),
         os.fspath(JPEGLS_SRC),
         numpy.get_include(),
-    ]
+    ],
+    extra_compile_args=extra_compile_args,
+    extra_link_args=extra_link_args,
 )
 
 setup(
