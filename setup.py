@@ -35,7 +35,7 @@ extra_link_args = []
 if platform.system() == 'Windows':
     pass
 elif platform.system() in ['Darwin']:
-    extra_compile_args.append("-std=c++11")
+    extra_compile_args.append("-std=c++14")
 
 
 ext = Extension(
