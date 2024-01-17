@@ -330,7 +330,7 @@ def encode_bytes(arr: np.ndarray, lossy_error: int = 0, interleave: int = 0) -> 
     info.width = arr.shape[1]
     info.components = arr.shape[2] if nr_dims == 3 else 1
     info.interleaveMode = <interleave_mode>0
-    info.allowedLossyError = lossy_error
+    info.allowedLossyError = <int>lossy_error
     info.stride = info.width * bytes_per_pixel
 
     bit_depth = math.ceil(math.log(arr.max() + 1, 2))

@@ -9,7 +9,7 @@ from jpeg_ls import decode, encode, write, read, debug_logger
 from _CharLS import encode_bytes, decode_bytes
 
 
-debug_logger()
+# debug_logger()
 
 
 DATA = Path(__file__).parent / "jlsimV100"
