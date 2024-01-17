@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 
 from jpeg_ls import decode, read
-
+from _CharLS import read_header
 
 DATA = Path(__file__).parent / "jlsimV100"
 
@@ -149,3 +149,41 @@ def test_decode(TEST8):
     with open(DATA / "T8C1E0.JLS", "rb") as f:
         arr = decode(np.frombuffer(f.read(), dtype="u1"))
         assert np.array_equal(arr, TEST8)
+
+
+class TestReadHeader:
+    """Tests for _CharLS.read_header()"""
+    def test_read_header(self):
+        """Test read_header()"""
+        with open(DATA / "T8C1E0.JLS", "rb") as f:
+            buffer = f.read()
+
+        info = read_header(buffer)
+        assert info["width"] == 256
+        assert info["height"] == 256
+        assert info["bits_per_sample"] == 8
+        assert info["stride"] == 768
+        assert info["components"] == 3
+        assert info["allowed_lossy_error"] == 0
+        assert info["interleave_mode"] == 1
+        assert info["colour_transformation"] == 0
+
+    def test_read_header(self):
+        """Test read_header()"""
+        with open(DATA / "T8C0E0.JLS", "rb") as f:
+            buffer = f.read()
+
+        info = read_header(buffer)
+        print(info)
+
+    def test_read_header_raises(self):
+        """Test decoding error with read_header()"""
+        with open(DATA / "T8SSE0.JLS", "rb") as f:
+            buffer = f.read()
+
+        msg = (
+            "Decoding error: The JPEG-LS stream is encoded with a parameter "
+            "value that is not supported by the CharLS decoder"
+        )
+        with pytest.raises(RuntimeError, match=msg):
+            info = read_header(buffer)
