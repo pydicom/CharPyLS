@@ -12,11 +12,11 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Development Status :: 4 - Beta",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: Implementation :: CPython",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
@@ -31,7 +31,7 @@ keywords = ["python, jpeg"]
 license = {text = "MIT"}
 name = "pyjpegls"
 readme = "readme.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 version = "1.1.0.dev0"
 
 [project.urls]

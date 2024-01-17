@@ -1,5 +1,5 @@
 
-from tempfile import NamedTemporaryFile
+from tempfile import TemporaryDirectory
 from pathlib import Path
 
 import pytest
@@ -139,8 +139,9 @@ class TestEncode:
 
 def test_write(TEST8R):
     """Test write()"""
-    t = NamedTemporaryFile(mode="wb")
-    write(t.name, TEST8R)
+    with TemporaryDirectory() as tdir:
+        p = Path(tdir)
+        write(p / "test.jls", TEST8R)
 
-    arr = read(t.name)
-    assert np.array_equal(arr, TEST8R)
+        arr = read(p / "test.jls")
+        assert np.array_equal(arr, TEST8R)
