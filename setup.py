@@ -1,6 +1,7 @@
 
 import os
 from pathlib import Path
+import platform
 import setuptools
 from setuptools import setup
 from setuptools.extension import Extension
