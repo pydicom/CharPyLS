@@ -173,6 +173,7 @@ def test_decode_buffer(TEST8):
 
 class TestReadHeader:
     """Tests for _CharLS.read_header()"""
+
     def test_read_header(self):
         """Test read_header()"""
         with open(DATA / "T8C1E0.JLS", "rb") as f:
@@ -188,7 +189,7 @@ class TestReadHeader:
         assert info["interleave_mode"] == 1
         assert info["colour_transformation"] == 0
 
-    def test_read_header(self):
+    def test_read_header2(self):
         """Test read_header()"""
         with open(DATA / "T8C0E0.JLS", "rb") as f:
             buffer = f.read()
@@ -213,4 +214,4 @@ class TestReadHeader:
             "value that is not supported by the CharLS decoder"
         )
         with pytest.raises(RuntimeError, match=msg):
-            info = read_header(buffer)
+            read_header(buffer)

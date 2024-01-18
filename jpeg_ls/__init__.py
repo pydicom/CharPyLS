@@ -1,10 +1,7 @@
 import logging
 
-from .CharLS import encode
-from .CharLS import decode
-#
-from .CharLS import write
-from .CharLS import read
+from .CharLS import encode, decode, write, read  # noqa: F401
+from _CharLS import encode_to_buffer, decode_from_buffer  # noqa: F401
 
 
 __version__ = "1.1.0.dev0"

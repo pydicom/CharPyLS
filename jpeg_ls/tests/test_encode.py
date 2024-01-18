@@ -1,4 +1,3 @@
-
 from tempfile import TemporaryDirectory
 from pathlib import Path
 
@@ -77,6 +76,7 @@ def TEST16():
 
 class TestEncode:
     """Tests for encode()"""
+
     def test_invalid_dtype_raises(self):
         msg = "Invalid input data type 'float64', expecting np.uint8 or np.uint16"
         with pytest.raises(Exception, match=msg):
@@ -93,7 +93,7 @@ class TestEncode:
     def test_invalid_shape_raises(self):
         msg = "Invalid data shape"
         with pytest.raises(Exception, match=msg):
-            encode(np.empty((2, ), dtype="u1"))
+            encode(np.empty((2,), dtype="u1"))
 
         with pytest.raises(Exception, match=msg):
             encode(np.empty((2, 2, 2, 2), dtype="u1"))
@@ -141,11 +141,11 @@ class TestEncode:
         arr = decode(buffer)
         assert np.array_equal(arr, TEST16)
 
+
 class TestEncodeBytes:
     def test_invalid_lossy_raises(self, TEST8):
         msg = (
-            "Encoding error: The near lossless argument is outside the range"
-            "[0, 255]"
+            "Encoding error: The near lossless argument is outside the range" "[0, 255]"
         )
         with pytest.raises(RuntimeError, match=msg):
             encode_to_buffer(TEST8, lossy_error=-1)
