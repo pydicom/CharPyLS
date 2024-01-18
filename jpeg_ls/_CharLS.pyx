@@ -47,22 +47,16 @@ cdef extern from "charls/public_types.h":
 
     cdef struct JlsParameters:
         # Width in pixels (number of samples per line)
-        # int32_t
         long width
-        # int32_t
         # Height in pixels (number of lines)
         long height
         # Bits per sample (sample precision (2, 16))
-        # int32_t
         long bitsPerSample
         # Number of bytes from one row of pixels to the next
-        # int32_t
         long stride
         # Number of components, 1 for monochrome, 3 for RGB (1, 255)
-        # int32_t
         long components
         # The allowed lossy error, 0 for lossless
-        # int32_t
         long allowedLossyError
         # The order of color components in the compressed stream
         interleave_mode interleaveMode
@@ -195,11 +189,11 @@ def read_header(src: bytes | bytearray) -> Dict[str, int]:
 
 
 def _decode(src: bytes | bytearray) -> bytearray:
-    """Decode the JPEG-LS codestream `src`
+    """Decode the JPEG-LS codestream `src` to a bytearray
 
     Parameters
     ----------
-    src : bytes
+    src : bytes | bytearray
         The JPEG-LS codestream to be decoded.
 
     Returns
@@ -238,12 +232,12 @@ def _decode(src: bytes | bytearray) -> bytearray:
     return dst
 
 
-def decode_bytes(src: bytes | bytearray) -> bytearray:
-    """Decode the JPEG-LS codestream `src`
+def decode_from_buffer(src: bytes | bytearray) -> bytearray:
+    """Decode the JPEG-LS codestream `src` to a bytearray
 
     Parameters
     ----------
-    src : bytes
+    src : bytes | bytearray
         The JPEG-LS codestream to be decoded.
 
     Returns
@@ -255,7 +249,7 @@ def decode_bytes(src: bytes | bytearray) -> bytearray:
 
 
 def decode(cnp.ndarray[cnp.uint8_t, ndim=1] data_buffer):
-    """Decode the JPEG-LS codestream `src`
+    """Decode the JPEG-LS codestream in the ndarray `data_buffer`
 
     Parameters
     ----------
@@ -267,7 +261,6 @@ def decode(cnp.ndarray[cnp.uint8_t, ndim=1] data_buffer):
     numpy.ndarray
         The decoded image.
     """
-
     src = data_buffer.tobytes()
 
     info = read_header(src)
@@ -280,16 +273,18 @@ def decode(cnp.ndarray[cnp.uint8_t, ndim=1] data_buffer):
     return arr.reshape((info["height"], info["width"]))
 
 
-def encode_bytes(arr: np.ndarray, lossy_error: int = 0, interleave: int = 0) -> bytearray:
-    """
+def encode_to_buffer(arr: np.ndarray, lossy_error: int = 0, interleave: int = 0) -> bytearray:
+    """Return the image data in `arr` as a JPEG-LS encoded bytearray.
 
     Parameters
     ----------
     arr : numpy.ndarray
         An ndarray containing the image data.
     lossy_error : int, optional
-        The allowable error when encoding using near-lossless, default ``0``
-        (lossless).
+        The absolute value of the allowable error when encoding using
+        near-lossless, default ``0`` (lossless). For example, if using 8-bit
+        pixel data then the allowable error for a lossy image may be in the
+        range (1, 255).
     interleave : int, optional
         The interleaving mode for multi-component images, default ``0``. One of
 
@@ -322,11 +317,14 @@ def encode_bytes(arr: np.ndarray, lossy_error: int = 0, interleave: int = 0) -> 
         f"{bytes_per_pixel} bytes per pixel"
     )
 
+    if interleave not in (0, 1, 2):
+        raise ValueError("Invalid 'interleave' value, must be 0, 1 or 2")
+
     cdef JlsParameters info = build_parameters()
     info.height = arr.shape[0]
     info.width = arr.shape[1]
     info.components = arr.shape[2] if nr_dims == 3 else 1
-    info.interleaveMode = <interleave_mode>0
+    info.interleaveMode = <interleave_mode><int>interleave
     info.allowedLossyError = lossy_error
     info.stride = info.width * bytes_per_pixel
 
@@ -373,4 +371,5 @@ def encode_bytes(arr: np.ndarray, lossy_error: int = 0, interleave: int = 0) -> 
 
 
 def encode(arr: np.ndarray) -> np.ndarray:
-    return np.frombuffer(encode_bytes(arr), dtype="u1")
+    """Return the image data in `arr` as a JPEG-LS encoded 1D ndarray."""
+    return np.frombuffer(encode_to_buffer(arr), dtype="u1")

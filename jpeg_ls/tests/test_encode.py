@@ -5,11 +5,8 @@ from pathlib import Path
 import pytest
 import numpy as np
 
-from jpeg_ls import decode, encode, write, read, debug_logger
-from _CharLS import encode_bytes, decode_bytes
-
-
-# debug_logger()
+from jpeg_ls import decode, encode, write, read
+from _CharLS import encode_to_buffer, decode_from_buffer
 
 
 DATA = Path(__file__).parent / "jlsimV100"
@@ -151,22 +148,22 @@ class TestEncodeBytes:
             "[0, 255]"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode_bytes(TEST8, lossy_error=-1)
+            encode_to_buffer(TEST8, lossy_error=-1)
 
         with pytest.raises(RuntimeError, match=msg):
-            encode_bytes(TEST8, lossy_error=256)
+            encode_to_buffer(TEST8, lossy_error=256)
 
     def test_TEST8_lossy(self, TEST8):
-        buffer = encode_bytes(TEST8, lossy_error=5)
+        buffer = encode_to_buffer(TEST8, lossy_error=5)
         assert isinstance(buffer, bytearray)
-        arr = np.frombuffer(decode_bytes(buffer), dtype="u1")
+        arr = np.frombuffer(decode_from_buffer(buffer), dtype="u1")
         arr = arr.reshape(TEST8.shape)
         assert np.allclose(arr, TEST8, atol=5)
 
     def test_TEST8R_lossy(self, TEST8R):
-        buffer = encode_bytes(TEST8R, lossy_error=3)
+        buffer = encode_to_buffer(TEST8R, lossy_error=3)
         assert isinstance(buffer, bytearray)
-        arr = np.frombuffer(decode_bytes(buffer), dtype="u1")
+        arr = np.frombuffer(decode_from_buffer(buffer), dtype="u1")
         arr = arr.reshape(TEST8R.shape)
         assert np.allclose(arr, TEST8R, atol=3)
 
