@@ -43,4 +43,3 @@ repository = "https://github.com/pydicom/pyjpegls"
 
 [tool.setuptools.packages.find]
 include = ["jpeg_ls*"]
-exclude = ["jpeg_ls/tests"]
