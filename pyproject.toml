@@ -10,7 +10,8 @@ authors = [
 
 classifiers = [
     "License :: OSI Approved :: MIT License",
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
+    "Natural Language :: English",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
@@ -40,5 +41,6 @@ download = "https://github.com/pydicom/pyjpegls/archive/master.zip"
 homepage = "https://github.com/pydicom/pyjpegls"
 repository = "https://github.com/pydicom/pyjpegls"
 
-[tool.setuptools.packages]
-find = {}
+[tool.setuptools.packages.find]
+include = ["jpeg_ls*"]
+exclude = ["jpeg_ls/tests"]
