@@ -33,7 +33,9 @@ def get_source_files() -> List[Path]:
 extra_compile_args = []
 extra_link_args = []
 if platform.system() == 'Windows':
-    pass
+    extra_compile_args.append("/Zc:__cplusplus")
+    extra_compile_args.append("/Zc:throwingNew")
+    extra_compile_args.append("/utf-8")
 elif platform.system() in ['Darwin']:
     extra_compile_args.append("-std=c++14")
 

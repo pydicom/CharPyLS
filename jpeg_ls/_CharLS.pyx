@@ -7,19 +7,6 @@ from typing import Dict
 import numpy as np
 cimport numpy as cnp
 
-# JLS_ERROR_MESSAGES = {
-#     0: "OK",
-#     1: "Invalid Jls Parameters",
-#     2: "Parameter Value Not Supported",
-#     3: "Uncompressed Buffer Too Small",
-#     4: "Compressed Buffer Too Small",
-#     5: "Invalid Compressed Data",
-#     6: "Too Much Compressed Data",
-#     7: "Image Type Not Supported",
-#     8: "Unsupported Bit Depth For Transform",
-#     9: "Unsupported Color Transform",
-# }
-
 
 LOGGER = logging.getLogger("jpeg_ls._CharLS")
 
@@ -43,34 +30,40 @@ cdef extern from "charls/public_types.h":
         CHARLS_COLOR_TRANSFORMATION_HP3 = 3
 
     cdef struct JpegLSPresetCodingParameters:
-        int MaximumSampleValue
-        int Threshold1
-        int Threshold2
-        int Threshold3
-        int ResetValue
+        long MaximumSampleValue
+        long Threshold1
+        long Threshold2
+        long Threshold3
+        long ResetValue
 
     cdef struct JfifParameters:
-        int version
-        int units
-        int Xdensity
-        int Ydensity
-        int Xthumbnail
-        int Ythumbnail
+        long version
+        long units
+        long Xdensity
+        long Ydensity
+        long Xthumbnail
+        long Ythumbnail
         void* thumbnail
 
     cdef struct JlsParameters:
         # Width in pixels (number of samples per line)
-        int width
+        # int32_t
+        long width
+        # int32_t
         # Height in pixels (number of lines)
-        int height
+        long height
         # Bits per sample (sample precision (2, 16))
-        int bitsPerSample
+        # int32_t
+        long bitsPerSample
         # Number of bytes from one row of pixels to the next
-        int stride
+        # int32_t
+        long stride
         # Number of components, 1 for monochrome, 3 for RGB (1, 255)
-        int components
+        # int32_t
+        long components
         # The allowed lossy error, 0 for lossless
-        int allowedLossyError
+        # int32_t
+        long allowedLossyError
         # The order of color components in the compressed stream
         interleave_mode interleaveMode
         color_transformation colorTransformation
@@ -117,6 +110,10 @@ cdef JlsParameters build_parameters():
     info_custom.ResetValue = 0
 
     cdef JfifParameters jfif
+    jfif.version = 0
+    jfif.units = 0
+    jfif.Xdensity = 0
+    jfif.Ydensity = 0
     jfif.Xthumbnail = 0
     jfif.Ythumbnail = 0
 
@@ -326,21 +323,15 @@ def encode_bytes(arr: np.ndarray, lossy_error: int = 0, interleave: int = 0) -> 
     )
 
     cdef JlsParameters info = build_parameters()
-    cdef int height = arr.shape[0]
-    info.height = height
-    cdef int width = arr.shape[1]
-    info.width = width
-    cdef int components = arr.shape[2] if nr_dims == 3 else 1
-    info.components = components
+    info.height = arr.shape[0]
+    info.width = arr.shape[1]
+    info.components = arr.shape[2] if nr_dims == 3 else 1
     info.interleaveMode = <interleave_mode>0
-    cdef int lossy = lossy_error
-    info.allowedLossyError = lossy
-    cdef int stride = info.width * bytes_per_pixel
-    info.stride = stride
+    info.allowedLossyError = lossy_error
+    info.stride = info.width * bytes_per_pixel
 
     bit_depth = math.ceil(math.log(arr.max() + 1, 2))
-    cdef int bits_per_sample = 2 if bit_depth <= 1 else bit_depth
-    info.bitsPerSample = bits_per_sample
+    info.bitsPerSample = 2 if bit_depth <= 1 else bit_depth
 
     LOGGER.debug(
         "Encoding paramers are:\n"
@@ -355,10 +346,9 @@ def encode_bytes(arr: np.ndarray, lossy_error: int = 0, interleave: int = 0) -> 
 
     # Destination for the compressed data - start out twice the length of raw
     dst = bytearray(b"\x00" * src_length * 2)
+
     # Number of bytes of compressed data
     cdef size_t compressed_length = 0
-    cdef size_t dst_length = len(dst)
-    cdef size_t src_len = src_length
 
     # Error strings are defined in jpegls_error.cpp
     # As of v2.4.2 the longest string is ~114 chars, so give it a 256 buffer
@@ -366,13 +356,13 @@ def encode_bytes(arr: np.ndarray, lossy_error: int = 0, interleave: int = 0) -> 
 
     cdef JLS_ERROR err
     err = JpegLsEncode(
-        <char*>dst,
-        dst_length,
+        <char *>dst,
+        len(dst),
         &compressed_length,
-        <char*>cnp.PyArray_DATA(arr),
-        src_len,
+        <char *>cnp.PyArray_DATA(arr),
+        src_length,
         &info,
-        <char *> error_message
+        <char *>error_message
     )
 
     if <int> err != 0:
