@@ -310,9 +310,9 @@ def encode_to_buffer(
           where w is the width of the image (i.e. the data is ordered line by line)
         * ``2``: the pixels in `src` are ordered R1G1B1R2G2B2...RnGnBn
 
-        It's recommended that the pixel data in `src` be ordered to match an
-        interleaving mode of ``0`` as this should result in the greatest
-        compression ratio.
+        Having multi-component pixel data ordered to match ``interleave_mode=0``
+        should result in the greatest compression ratio, however most
+        applications expect the pixel order to be ``interleave_mode=2``.
 
     Returns
     -------

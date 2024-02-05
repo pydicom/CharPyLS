@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 import numpy as np
-import matplotlib.pyplot as plt
 
 from jpeg_ls import decode, encode, write, read
 from _CharLS import encode_to_buffer, decode_from_buffer
@@ -105,8 +104,6 @@ class TestEncode:
         arr = TEST8.transpose(2, 0, 1)
         assert arr.shape == (3, 256, 256)
         buffer = encode(arr, interleave_mode=0)
-        with open("ilv0.jls", "wb") as f:
-            f.write(buffer)
         assert isinstance(buffer, np.ndarray)
         arr = decode(buffer)
         assert np.array_equal(arr, TEST8)
@@ -115,8 +112,6 @@ class TestEncode:
         # 3 component, ILV 1
         assert TEST8.shape == (256, 256, 3)
         buffer = encode(TEST8, interleave_mode=1)
-        with open("ilv1.jls", "wb") as f:
-            f.write(buffer)
         assert isinstance(buffer, np.ndarray)
         arr = decode(buffer)
         assert np.array_equal(arr, TEST8)
@@ -125,8 +120,6 @@ class TestEncode:
         # 3 component, ILV 2
         assert TEST8.shape == (256, 256, 3)
         buffer = encode(TEST8, interleave_mode=2)
-        with open("ilv2.jls", "wb") as f:
-            f.write(buffer)
         assert isinstance(buffer, np.ndarray)
         arr = decode(buffer)
         assert np.array_equal(arr, TEST8)
