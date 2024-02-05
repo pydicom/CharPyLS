@@ -286,7 +286,7 @@ def decode(cnp.ndarray[cnp.uint8_t, ndim=1] data_buffer):
 
 
 def encode_to_buffer(
-    src: np.ndarray | bytes,
+    arr: np.ndarray,
     lossy_error: int = 0,
     interleave_mode: int | None = None,
 ) -> bytearray:
