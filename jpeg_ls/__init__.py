@@ -1,10 +1,22 @@
 import logging
 
-from .CharLS import encode, decode, write, read  # noqa: F401
-from _CharLS import encode_to_buffer, decode_from_buffer  # noqa: F401
+from .CharLS import (
+    encode,
+    decode,
+    write,
+    read,
+    jlswrite,
+    encode_array,
+    encode_buffer,
+    encode_pixel_data,
+    jlsread,
+    decode_buffer,
+    decode_pixel_data,
+)
+from _CharLS import decode_from_buffer  # noqa: F401
 
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 
 # Setup default logging

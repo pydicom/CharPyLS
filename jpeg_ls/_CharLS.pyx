@@ -234,7 +234,7 @@ def _decode(src: bytes | bytearray) -> bytearray:
     return dst
 
 
-def decode_from_buffer(src: bytes | bytearray) -> tuple[bytearray, dict[str, int]]:
+def decode_from_buffer(src: bytes | bytearray) -> bytearray:
     """Decode the JPEG-LS codestream `src` to a bytearray
 
     Parameters
@@ -244,10 +244,10 @@ def decode_from_buffer(src: bytes | bytearray) -> tuple[bytearray, dict[str, int
 
     Returns
     -------
-    tuple[bytearray, dict[str, int]]
-        The decoded (image data, image metadata).
+    bytearray
+        The decoded image data.
     """
-    return _decode(src), read_header(src)
+    return _decode(src)
 
 
 def decode(cnp.ndarray[cnp.uint8_t, ndim=1] data_buffer):
@@ -285,101 +285,64 @@ def decode(cnp.ndarray[cnp.uint8_t, ndim=1] data_buffer):
     return arr.reshape((rows, columns))
 
 
-def encode_to_buffer(
-    arr: np.ndarray,
-    lossy_error: int = 0,
-    interleave_mode: int | None = None,
+def _encode(
+    src: bytes,
+    lossy_error: int,
+    interleave_mode: int,
+    rows: int,
+    columns: int,
+    samples_per_pixel: int,
+    bits_stored: int,
 ) -> bytearray:
-    """Return the image data in `arr` as a JPEG-LS encoded bytearray.
+    """Return the image data in `src` as a JPEG-LS encoded bytearray.
 
     Parameters
     ----------
-    arr : numpy.ndarray
-        An ndarray containing the image data.
-    lossy_error : int, optional
+    src : bytes
+        The image data to be JPEG-LS encoded.
+    lossy_error : int
         The absolute value of the allowable error when encoding using
         near-lossless, default ``0`` (lossless). For example, if using 8-bit
         pixel data then the allowable error for a lossy image may be in the
         range (1, 255).
-    interleave_mode : int, optional
-        The interleaving mode for multi-component (i.e. non-greyscale) images,
-        default ``0``. One of
+    interleave_mode : int
+        Required for multi-sample (i.e. non-greyscale) image data, the
+        interleaving mode of `src`. One of:
 
-        * ``0``: the pixels in `src` are ordered R1R2...RnG1G2...GnB1B2...Bn
+        * ``0``: the pixels in `src` are ordered R1R2...RnG1G2...GnB1B2...Bn,
+          otherwise known as colour-by-plane
         * ``1``: the pixels in `src` are ordered R1...RwG1...GwB1...BwRw+1...
-          where w is the width of the image (i.e. the data is ordered line by line)
-        * ``2``: the pixels in `src` are ordered R1G1B1R2G2B2...RnGnBn
-
-        Having multi-component pixel data ordered to match ``interleave_mode=0``
-        should result in the greatest compression ratio, however most
-        applications expect the pixel order to be ``interleave_mode=2``.
+          where w is the width of the image, otherwise known as colour-by-line
+        * ``2``: the pixels in `src` are ordered R1G1B1R2G2B2...RnGnBn,
+          otherwise known as colour-by-pixel
+    rows : int
+        The number of rows of pixels in the image.
+    columns : int
+        The number of columns of pixels in the image.
+    samples_per_pixel : int
+        The number of samples per pixel in the image, otherwise knows as the
+        number of components or channels. A greyscale image has 1 sample per
+        pixel while an RGB image will have 3.
+    bits_stored : int
+        The bit-depth per pixel, must be in the range (1, 16).
 
     Returns
     -------
     bytearray
         The encoded JPEG-LS codestream.
     """
-    if arr.dtype == np.uint8:
-        bytes_per_pixel = 1
-    elif arr.dtype == np.uint16:
-        bytes_per_pixel = 2
-    else:
-        raise ValueError(
-            f"Invalid input data type '{arr.dtype}', expecting np.uint8 or np.uint16."
-        )
-
-    src_length = arr.size * bytes_per_pixel
-    nr_dims = len(arr.shape)
-    if nr_dims not in (2, 3):
-        raise ValueError("Invalid data shape")
-
-    LOGGER.debug(
-        f"Encoding 'src' is {src_length} bytes, shaped as {arr.shape} with "
-        f"{bytes_per_pixel} bytes per pixel"
-    )
-
-    if nr_dims == 2:
-        # Greyscale images should always be interleave mode 0
-        interleave_mode = 0
-        rows = arr.shape[0]
-        columns = arr.shape[1]
-    else:
-        # Multi-component images may be interleave mode 0, 1 or 2
-        if arr.shape[-1] in (3, 4):
-            # Colour-by-pixel (R, C, 3) or (R, C, 4)
-            # Mode 1 and 2 are identical apparently
-            interleave_mode = 2 if interleave_mode is None else interleave_mode
-        elif arr.shape[0] in (3, 4):
-            # Colour-by-plane (3, R, C) or (4, R, C)
-            interleave_mode = 0 if interleave_mode is None else interleave_mode
-        elif interleave_mode is None:
-            raise ValueError(
-                "Unable to automatically determine an appropriate 'interleave_mode' "
-                "value, please set it manually"
-            )
-
-        if interleave_mode == 0:
-            components = arr.shape[0]
-            rows = arr.shape[1]
-            columns = arr.shape[2]
-        else:
-            rows = arr.shape[0]
-            columns = arr.shape[1]
-            components = arr.shape[2]
-
     cdef JlsParameters info = build_parameters()
     info.height = rows
     info.width = columns
-    info.components = components if nr_dims == 3 else 1
+    info.components = samples_per_pixel
     info.interleaveMode = <c_interleave_mode><int>interleave_mode
     info.allowedLossyError = lossy_error
 
-    info.stride = info.width * bytes_per_pixel
+    info.stride = info.width * math.ceil(bits_stored / 8)
     if interleave_mode != 0:
         info.stride = info.stride * info.components
 
-    bit_depth = math.ceil(math.log(arr.max() + 1, 2))
-    info.bitsPerSample = 2 if bit_depth <= 1 else bit_depth
+    info.bitsPerSample = 2 if bits_stored < 2 else bits_stored
 
     LOGGER.debug(
         "Encoding paramers are:\n"
@@ -393,6 +356,7 @@ def encode_to_buffer(
     )
 
     # Destination for the compressed data - start out twice the length of raw
+    src_length = len(src)
     dst = bytearray(b"\x00" * src_length * 2)
 
     # Number of bytes of compressed data
@@ -401,10 +365,6 @@ def encode_to_buffer(
     # Error strings are defined in jpegls_error.cpp
     # As of v2.4.2 the longest string is ~114 chars, so give it a 256 buffer
     error_message = bytearray(b"\x00" * 256)
-
-    # We need a contiguous buffer in the correct interleave mode (i.e. not
-    #   just a re-view via ndarray.transpose())
-    src = arr.tobytes()
 
     cdef JLS_ERROR err
     err = JpegLsEncode(
@@ -422,15 +382,3 @@ def encode_to_buffer(
         raise RuntimeError(f"Encoding error: {msg}")
 
     return dst[:compressed_length]
-
-
-def encode(
-    arr: np.ndarray,
-    lossy_error: int = 0,
-    interleave_mode: int | None = None,
-) -> np.ndarray:
-    """Return the image data in `arr` as a JPEG-LS encoded 1D ndarray."""
-    return np.frombuffer(
-        encode_to_buffer(arr, lossy_error, interleave_mode),
-        dtype="u1",
-    )
