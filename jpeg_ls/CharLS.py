@@ -10,7 +10,7 @@ import _CharLS
 
 
 # Old interface
-def read(fname: Union[str, os.PathLike[str]]) -> np.ndarray:
+def read(fname: Union[str, os.PathLike]) -> np.ndarray:
     """Read image data from JPEG-LS file."""
     with open(fname, "rb") as f:
         arr = np.frombuffer(f.read(), dtype=np.uint8)
@@ -18,7 +18,7 @@ def read(fname: Union[str, os.PathLike[str]]) -> np.ndarray:
     return _CharLS.decode(arr)
 
 
-def write(fname: Union[str, os.PathLike[str]], data_image: np.ndarray) -> None:
+def write(fname: Union[str, os.PathLike], data_image: np.ndarray) -> None:
     """Write compressed image data to JPEG-LS file."""
     buffer = encode_array(data_image)
     with open(fname, "wb") as f:
@@ -47,7 +47,7 @@ def decode(data_buffer: np.ndarray) -> np.ndarray:
 # New interface - encoding functions
 def jlswrite(
     arr: np.ndarray,
-    dst: Union[str, os.PathLike[str], BinaryIO],
+    dst: Union[str, os.PathLike, BinaryIO],
     *,
     lossy_error: int = 0,
     interleave_mode: Union[int, None] = None,
@@ -344,7 +344,7 @@ def encode_pixel_data(src: bytes, lossy_error: int = 0, **kwargs: Any) -> bytear
 
 
 # New interface - decoding functions
-JLSSourceType = Union[str, os.PathLike[str], BinaryIO, bytes, bytearray]
+JLSSourceType = Union[str, os.PathLike, BinaryIO, bytes, bytearray]
 
 
 def jlsread(src: JLSSourceType) -> np.ndarray:
