@@ -2,7 +2,7 @@
 from io import BytesIO
 import math
 import os
-from typing import Union, Any, BinaryIO
+from typing import Union, Any, BinaryIO, Dict, Tuple
 
 import numpy as np
 
@@ -396,7 +396,7 @@ def jlsread(src: JLSSourceType) -> np.ndarray:
     return arr.reshape((rows, columns))
 
 
-def decode_buffer(src: Union[bytes, bytearray]) -> tuple[bytearray, dict[str, int]]:
+def decode_buffer(src: Union[bytes, bytearray]) -> Tuple[bytearray, Dict[str, int]]:
     """Decode the JPEG-LS codestream `src` to a bytearray
 
     Parameters
