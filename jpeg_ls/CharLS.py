@@ -96,7 +96,7 @@ def jlswrite(
 def encode_array(
     arr: np.ndarray,
     lossy_error: int = 0,
-    interleave_mode: int | None = None,
+    interleave_mode: Union[int, None] = None,
 ) -> bytearray:
     """Return the image data in `arr` as a JPEG-LS encoded bytearray.
 
@@ -396,7 +396,7 @@ def jlsread(src: JLSSourceType) -> np.ndarray:
     return arr.reshape((rows, columns))
 
 
-def decode_buffer(src: bytes | bytearray) -> tuple[bytearray, dict[str, int]]:
+def decode_buffer(src: Union[bytes, bytearray]) -> tuple[bytearray, dict[str, int]]:
     """Decode the JPEG-LS codestream `src` to a bytearray
 
     Parameters
@@ -412,7 +412,7 @@ def decode_buffer(src: bytes | bytearray) -> tuple[bytearray, dict[str, int]]:
     return _CharLS._decode(src), _CharLS.read_header(src)
 
 
-def decode_pixel_data(src: bytes | bytearray, **kwargs: Any) -> bytearray:
+def decode_pixel_data(src: Union[bytes, bytearray], **kwargs: Any) -> bytearray:
     """Decode the JPEG-LS codestream `src` to a bytearray
 
     .. note::
