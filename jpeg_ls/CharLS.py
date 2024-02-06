@@ -1,6 +1,5 @@
 
 from io import BytesIO
-import logging
 import math
 import os
 from typing import Union, Any, BinaryIO
@@ -8,9 +7,6 @@ from typing import Union, Any, BinaryIO
 import numpy as np
 
 import _CharLS
-
-
-LOGGER = logging.getLogger(__name__)
 
 
 # Old interface
@@ -45,7 +41,6 @@ def encode(
 def decode(data_buffer: np.ndarray) -> np.ndarray:
     """Decode grey-scale image via JPEG-LS using CharLS implementation."""
     b = BytesIO(data_buffer.tobytes())
-    b.seek(0)
     return jlsread(b)
 
 
@@ -77,14 +72,14 @@ def jlswrite(
         range (1, 255).
     interleave_mode : int, optional
         Required for multi-sample (i.e. non-greyscale) image data, the
-        interleaving mode of `src`. One of:
+        interleaving mode of `arr`. One of:
 
-        * ``0``: the pixels in `src` are ordered R1R2...RnG1G2...GnB1B2...Bn,
-          otherwise known as colour-by-plane
-        * ``1``: the pixels in `src` are ordered R1...RwG1...GwB1...BwRw+1...
+        * ``0``: `arr` is ordered R1R2...RnG1G2...GnB1B2...Bn, otherwise known
+          as colour-by-plane
+        * ``1``: `arr` is ordered R1...RwG1...GwB1...BwRw+1...
           where w is the width of the image, otherwise known as colour-by-line
-        * ``2``: the pixels in `src` are ordered R1G1B1R2G2B2...RnGnBn,
-          otherwise known as colour-by-pixel
+        * ``2``: `arr` is ordered R1G1B1R2G2B2...RnGnBn, otherwise known as
+          colour-by-pixel
 
         Having multi-sample pixel data ordered to match ``interleave_mode=0``
         should result in the greatest compression ratio, however most
@@ -116,14 +111,14 @@ def encode_array(
         range (1, 255).
     interleave_mode : int, optional
         Required for multi-sample (i.e. non-greyscale) image data, the
-        interleaving mode of `src`. One of:
+        interleaving mode of `arr`. One of:
 
-        * ``0``: the pixels in `src` are ordered R1R2...RnG1G2...GnB1B2...Bn,
-          otherwise known as colour-by-plane
-        * ``1``: the pixels in `src` are ordered R1...RwG1...GwB1...BwRw+1...
+        * ``0``: `arr` is ordered R1R2...RnG1G2...GnB1B2...Bn, otherwise known
+          as colour-by-plane
+        * ``1``: `arr` is ordered R1...RwG1...GwB1...BwRw+1...
           where w is the width of the image, otherwise known as colour-by-line
-        * ``2``: the pixels in `src` are ordered R1G1B1R2G2B2...RnGnBn,
-          otherwise known as colour-by-pixel
+        * ``2``: `arr` is ordered R1G1B1R2G2B2...RnGnBn, otherwise known as
+          colour-by-pixel
 
         Having multi-sample pixel data ordered to match ``interleave_mode=0``
         should result in the greatest compression ratio, however most

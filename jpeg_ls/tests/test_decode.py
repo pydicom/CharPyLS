@@ -510,11 +510,16 @@ def test_decode(TEST8):
 
 def test_decode_buffer(TEST8):
     with open(DATA / "T8C1E0.JLS", "rb") as f:
-        buffer, info = decode_from_buffer(f.read())
-        bytes_per_sample = info["bits_per_sample"] // 8
-        arr = np.frombuffer(buffer, dtype=f"u{bytes_per_sample}")
-        arr = arr.reshape(info["height"], info["width"], info["components"])
-        assert np.array_equal(arr, TEST8)
+        im = decode_from_buffer(f.read())
+
+    info = {
+        "height": 256,
+        "width": 256,
+        "components": 3,
+        "bits_per_sample": 8,
+        "interleave_mode": 2,
+    }
+    assert np.array_equal(as_array(im, info), TEST8)
 
 
 def test_decode_pixel_data(TEST8):
@@ -528,7 +533,6 @@ def test_decode_pixel_data(TEST8):
         "bits_per_sample": 8,
         "interleave_mode": 2,
     }
-
     assert np.array_equal(as_array(im, info), TEST8)
 
 
