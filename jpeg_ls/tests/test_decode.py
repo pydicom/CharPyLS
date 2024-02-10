@@ -524,15 +524,8 @@ def test_decode_buffer(TEST8):
 
 def test_decode_pixel_data(TEST8):
     with open(DATA / "T8C2E0.JLS", "rb") as f:
-        im = decode_pixel_data(f.read())
+        im, info = decode_pixel_data(f.read())
 
-    info = {
-        "height": 256,
-        "width": 256,
-        "components": 3,
-        "bits_per_sample": 8,
-        "interleave_mode": 2,
-    }
     assert np.array_equal(as_array(im, info), TEST8)
 
 

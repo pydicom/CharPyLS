@@ -85,6 +85,25 @@ def TEST16():
     return arr.reshape((256, 256)).astype("<u2")
 
 
+def test_encode(TEST8):
+    jlswrite(
+        TEST8,
+        "ilv1.jls",
+        interleave_mode=1,
+    )
+    jlswrite(
+        TEST8,
+        "ilv2.jls",
+        interleave_mode=2,
+    )
+    arr = TEST8.transpose(2, 0, 1)
+    jlswrite(
+        arr,
+        "ilv0.jls",
+        interleave_mode=0,
+    )
+
+
 class TestEncodeArray:
     """Tests for encode_array()"""
 
