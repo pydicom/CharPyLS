@@ -412,7 +412,7 @@ def decode_buffer(src: Union[bytes, bytearray]) -> Tuple[bytearray, Dict[str, in
     return _CharLS._decode(src), _CharLS.read_header(src)
 
 
-def decode_pixel_data(src: Union[bytes, bytearray], **kwargs: Any) -> bytearray:
+def decode_pixel_data(src: Union[bytes, bytearray], **kwargs: Any) -> Tuple[bytearray, Dict[str, int]]:
     """Decode the JPEG-LS codestream `src` to a bytearray
 
     .. note::
@@ -430,7 +430,7 @@ def decode_pixel_data(src: Union[bytes, bytearray], **kwargs: Any) -> bytearray:
 
     Returns
     -------
-    bytearray
-        The decoded image data.
+    tuple[bytearray, dict[str, int]]
+        The decoded (image data, image metadata).
     """
-    return _CharLS._decode(src)
+    return decode_buffer(src)
