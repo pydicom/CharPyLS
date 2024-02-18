@@ -198,7 +198,9 @@ def encode_buffer(
     Parameters
     ----------
     src : bytes
-        The image data to be JPEG-LS encoded.
+        The little-endian ordered image data to be JPEG-LS encoded. May use
+        either 8- or 16-bits per pixel, as long as the bit-depth is sufficient
+        for `bits_stored`.
     rows : int
         The number of rows of pixels in the image.
     columns : int
@@ -275,11 +277,15 @@ def encode_buffer(
     length_src = len(src)
     length_expected = rows * columns * samples_per_pixel * bytes_per_pixel
     if length_expected != length_src:
-        raise ValueError(
-            f"The 'src' length of {length_src} bytes does not match the expected "
-            "length determined from 'rows', 'columns', 'samples_per_pixel' and "
-            "'bits_stored'"
-        )
+        if length_expected * 2 != length_src:
+            raise ValueError(
+                f"The 'src' length of {length_src} bytes does not match the expected "
+                "length determined from 'rows', 'columns', 'samples_per_pixel' and "
+                "'bits_stored'"
+            )
+
+        # 16-bits per pixel for bits_stored <= 8
+        src = src[::2]
 
     return _CharLS._encode(
         src,

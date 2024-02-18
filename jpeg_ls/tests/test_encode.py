@@ -508,6 +508,24 @@ class TestEncodeBuffer:
         assert not np.array_equal(arr, TEST8R)
         assert np.allclose(arr, TEST8R, atol=3)
 
+    def test_TEST8R_16_08(self, TEST8R):
+        """Test 16-bit container for 8-bit samples"""
+        arr = TEST8R.astype("u2")
+        buffer = arr.tobytes()
+
+        enc = encode_buffer(
+            buffer,
+            rows=256,
+            columns=256,
+            samples_per_pixel=1,
+            bits_stored=8,
+            lossy_error=0,
+            interleave_mode=0,
+        )
+
+        arr = jlsread(enc)
+        assert np.array_equal(arr, TEST8R)
+
 
 class TestEncodePixelData:
     """Tests for encode_pixel_data()"""
