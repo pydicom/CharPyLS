@@ -16,7 +16,7 @@ from .CharLS import (
 from _CharLS import decode_from_buffer  # noqa: F401
 
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
 
 # Setup default logging
