@@ -179,7 +179,7 @@ def encode_array(
         rows,
         columns,
         samples_per_pixel,
-        math.ceil(math.log(arr.max() + 1, 2)),
+        math.ceil(math.log(int(arr.max()) + 1, 2)),
     )
 
 
