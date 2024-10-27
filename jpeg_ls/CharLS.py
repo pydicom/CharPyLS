@@ -31,7 +31,7 @@ def encode(
     interleave_mode: Union[int, None] = None
 ) -> np.ndarray:
     """Encode grey-scale image via JPEG-LS using CharLS implementation."""
-    if data_image.dtype == np.uint16 and np.max(data_image) <= 255:
+    if data_image.dtype.itemsize == 2 and np.max(data_image) <= 255:
         data_image = data_image.astype(np.uint8)
 
     buffer = encode_array(data_image, lossy_error, interleave_mode)
@@ -129,11 +129,8 @@ def encode_array(
     bytearray
         The encoded JPEG-LS codestream.
     """
-    if arr.dtype == np.uint8:
-        bytes_per_pixel = 1
-    elif arr.dtype == np.uint16:
-        bytes_per_pixel = 2
-    else:
+    bytes_per_pixel = arr.dtype.itemsize
+    if bytes_per_pixel not in (1, 2) or arr.dtype.kind != "u":
         raise ValueError(
             f"Invalid ndarray dtype '{arr.dtype}', expecting np.uint8 or np.uint16."
         )
@@ -309,7 +306,7 @@ def encode_pixel_data(src: bytes, lossy_error: int = 0, **kwargs: Any) -> bytear
     Parameters
     ----------
     src : bytes
-        The image data to be JPEG-LS encoded.
+        The little-endian ordered image data to be JPEG-LS encoded.
     lossy_error : int, optional
         The absolute value of the allowable error when encoding using
         near-lossless, default ``0`` (lossless). For example, if using 8-bit
@@ -384,7 +381,7 @@ def jlsread(src: JLSSourceType) -> np.ndarray:
     im, info = decode_buffer(buffer)
 
     bytes_per_pixel = math.ceil(info["bits_per_sample"] / 8)
-    arr = np.frombuffer(im, dtype=f"u{bytes_per_pixel}")
+    arr = np.frombuffer(im, dtype=f"<u{bytes_per_pixel}")
     rows = info["height"]
     columns = info["width"]
     samples_per_pixel = info["components"]
@@ -413,7 +410,8 @@ def decode_buffer(src: Union[bytes, bytearray]) -> Tuple[bytearray, Dict[str, in
     Returns
     -------
     tuple[bytearray, dict[str, int]]
-        The decoded (image data, image metadata).
+        The decoded (image data, image metadata). The image data will use little-endian
+        byte ordering for multi-byte pixels.
     """
     return _CharLS._decode(src), _CharLS.read_header(src)
 
@@ -437,6 +435,7 @@ def decode_pixel_data(src: Union[bytes, bytearray], **kwargs: Any) -> Tuple[byte
     Returns
     -------
     tuple[bytearray, dict[str, int]]
-        The decoded (image data, image metadata).
+        The decoded (image data, image metadata). The image data will use little-endian
+        byte ordering for multi-byte pixels.
     """
     return decode_buffer(src)

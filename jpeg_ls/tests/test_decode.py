@@ -256,7 +256,7 @@ class TestJLSRead:
 
 def as_array(im, info):
     bytes_per_pixel = math.ceil(info["bits_per_sample"] / 8)
-    arr = np.frombuffer(im, dtype=f"u{bytes_per_pixel}")
+    arr = np.frombuffer(im, dtype=f"<u{bytes_per_pixel}")
     rows = info["height"]
     columns = info["width"]
     samples_per_pixel = info["components"]
