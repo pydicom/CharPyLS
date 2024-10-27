@@ -3,6 +3,7 @@
 import logging
 import math
 from typing import Dict
+import sys
 
 import numpy as np
 cimport numpy as cnp
@@ -201,7 +202,7 @@ def _decode(src: bytes | bytearray) -> bytearray:
     Returns
     -------
     bytearray
-        The decoded image data.
+        The decoded little-endian ordered image data.
     """
     if isinstance(src, bytearray):
         src = bytes(src)
@@ -231,6 +232,10 @@ def _decode(src: bytes | bytearray) -> bytearray:
         msg = error_message.decode("ascii").strip("\0")
         raise RuntimeError(f"Decoding error: {msg}")
 
+    # Need to byte-swap the output on big endian systems
+    if sys.byteorder == "big" and bytes_per_pixel > 1:
+        dst[::2], dst[1::2] = dst[1::2], dst[::2]
+
     return dst
 
 
@@ -245,7 +250,7 @@ def decode_from_buffer(src: bytes | bytearray) -> bytearray:
     Returns
     -------
     bytearray
-        The decoded image data.
+        The decoded little-endian ordered image data.
     """
     return _decode(src)
 
@@ -267,7 +272,7 @@ def decode(cnp.ndarray[cnp.uint8_t, ndim=1] data_buffer):
 
     info = read_header(src)
     bytes_per_pixel = math.ceil(info["bits_per_sample"] / 8)
-    arr = np.frombuffer(_decode(src), dtype=f"u{bytes_per_pixel}")
+    arr = np.frombuffer(_decode(src), dtype=f"<u{bytes_per_pixel}")
     rows = info["height"]
     columns = info["width"]
     samples_per_pixel = info["components"]
@@ -365,6 +370,12 @@ def _encode(
     # Error strings are defined in jpegls_error.cpp
     # As of v2.4.2 the longest string is ~114 chars, so give it a 256 buffer
     error_message = bytearray(b"\x00" * 256)
+
+    # Need to byte-swap the input on big endian systems
+    if sys.byteorder == "big" and bits_stored > 8:
+        b = bytearray(src)
+        b[::2], b[1::2] = b[1::2], b[::2]
+        src = bytes(b)
 
     cdef JLS_ERROR err
     err = JpegLsEncode(

@@ -510,7 +510,7 @@ class TestEncodeBuffer:
 
     def test_TEST8R_16_08(self, TEST8R):
         """Test 16-bit container for 8-bit samples"""
-        arr = TEST8R.astype("u2")
+        arr = TEST8R.astype("<u2")
         buffer = arr.tobytes()
         assert len(buffer) == 256 * 256 * 2
 
