@@ -1,3 +1,4 @@
+from importlib.metadata import version
 import logging
 
 from .CharLS import (
@@ -16,7 +17,7 @@ from .CharLS import (
 from _CharLS import decode_from_buffer  # noqa: F401
 
 
-__version__ = "1.3.0"
+__version__: str = version("pyjpegls")
 
 
 # Setup default logging
